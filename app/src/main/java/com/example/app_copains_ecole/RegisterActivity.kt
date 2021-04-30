@@ -5,41 +5,38 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import android.widget.*
-import androidx.annotation.Nullable
+import android.widget.Button
+import android.widget.EditText
+import android.widget.ProgressBar
+import android.widget.TextView
 import com.example.app_copains_ecole.model.UserBean
 import com.example.app_copains_ecole.utils.WsUtils
 import kotlin.concurrent.thread
 
-class MainActivity : AppCompatActivity(), View.OnClickListener {
+class RegisterActivity : AppCompatActivity(), View.OnClickListener {
 
     // Déclaration d'un pointeur vers un Button / txt ...
-    lateinit var btnRegister: Button
-    lateinit var btnFind: Button
-    lateinit var btnLogin: Button
+    lateinit var btnValidate: Button
     lateinit var txtPseudo: EditText
     lateinit var txtPassword: EditText
+    lateinit var txtGroup: EditText
     lateinit var progressBar: ProgressBar
     lateinit var tvError: TextView
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.activity_register)
 
         // bind pointeur et id
-        btnRegister = findViewById(R.id.btnRegister)
-        btnFind = findViewById(R.id.btnFind)
-        btnLogin = findViewById(R.id.btnLogin)
+        btnValidate = findViewById(R.id.btnValidate)
         txtPseudo = findViewById(R.id.txtPseudo)
         txtPassword = findViewById(R.id.txtPassword)
-        tvError = findViewById(R.id.tvError)
+        txtGroup = findViewById(R.id.txtGroup)
         progressBar = findViewById(R.id.progressBar)
+        tvError = findViewById(R.id.tvError)
 
         // Event listener on btn
-        btnRegister.setOnClickListener(this)
-        btnFind.setOnClickListener(this)
-        btnLogin.setOnClickListener(this)
+        btnValidate.setOnClickListener(this)
 
         // ProgressBar init a false + errorTv a gone + ""
         showProgressBar(false)
@@ -48,28 +45,18 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
     override fun onClick(v: View?) {
         when (v) {
-            btnRegister -> {
-                Log.i("tag_i", "onClick: btnRegister")
-                startActivity(Intent(this, RegisterActivity::class.java))
-
-            }
-            btnFind -> {
-                Log.i("tag_i", "onClick: btnFind")
-//                startActivity(Intent(this, MapsActivity::class.java))
-                Toast.makeText(this, "Vous devez vous connecter", Toast.LENGTH_SHORT).show()
-            }
-            btnLogin -> {
-                Log.i("tag_i", "onClick: btnLogin")
+            btnValidate -> {
+                Log.i("tag_i", "onClick: btnValidate")
                 val intent = Intent(this, MapsActivity::class.java)
-                val user = UserBean(pseudo = "${txtPseudo.text}", password = "${txtPassword.text}")
+                val user = UserBean(pseudo = "${txtPseudo.text}", password = "${txtPassword.text}", group_users = 1)
 
-                // ProgressBar le temps du login
+                // ProgressBar le temps du register
                 showProgressBar(true)
 
                 // Lance un thread pour ne pas bloquer le thread graphique
                 thread {
                     try {
-                        WsUtils.login(user)
+                        WsUtils.register(user)
                         intent.putExtra("user", user)
                         startActivity(intent)
                     } catch (e: Exception) {
@@ -77,14 +64,10 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
                         Log.w("tag_w", "${e.message}")
                         setErrorOnUiThread(e.message)
                     }
-
-                    showProgressBar(false)
                 }
-
             }
         }
     }
-
 
     /* -------------------------------- */
     // Méthode de mise à jour de l'ihm
@@ -97,16 +80,9 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             tvError.visibility = View.VISIBLE
         }
         tvError.text = text
-
-        // ProgressBar gone anyway
-        showProgressBar(false)
     }
 
     private fun showProgressBar(visible: Boolean) = runOnUiThread {
         progressBar.visibility = if (visible) View.VISIBLE else View.GONE
     }
-
-
 }
-
-
